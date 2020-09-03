@@ -1,13 +1,25 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
-namespace Foundations.Controllers
+namespace Authentication.Controllers
 {
     public class HomeController : Controller
     {
+        private  UserManager<IdentityUser> _userManager { get; }
+        private SignInManager<IdentityUser> _signInManager { get; }
+
+        public HomeController(UserManager<IdentityUser> userManager,
+            SignInManager<IdentityUser> signInManager)
+        {
+            _userManager = userManager;
+            _signInManager = signInManager;
+        }
         public IActionResult Index()
         {
             return View();
@@ -19,27 +31,52 @@ namespace Foundations.Controllers
             return View();
         }
 
-        public IActionResult Authenticate()
+        [HttpPost]
+        public async Task<IActionResult> Login(String username, String password)
         {
-            var FoundationClaim = new List<Claim>()
-            {
-                new Claim(ClaimTypes.Name, "TheFoundation"),
-                new Claim(ClaimTypes.Email, "Omid.Naghizadeh@icloud.com")
+            return await SignIn(username, password);
+        }
+
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Register(String username, String password)
+        {
+            IdentityUser user = new IdentityUser 
+            { 
+                UserName = username,
+                Email = ""
             };
+            var result = await _userManager.CreateAsync(user, password);
 
-            var GoogleClaim = new List<Claim>()
+            if (result.Succeeded)
             {
-                new Claim(ClaimTypes.Name, "TheGoogleClaim"),
-                new Claim(ClaimTypes.Email, "Omid.Naghizadeh@gmail.com")
-            };
+                return await SignIn(username, password);
+            }
+            return RedirectToAction("Index");
+        }
 
-            var TheIdentity = new ClaimsIdentity(FoundationClaim, "FoundationClaim");
-            var TheGoogleIdentity = new ClaimsIdentity(GoogleClaim, "TheGoogleClaim");
+        public IActionResult Register()
+        {
+            return View();
+        }
 
+        private async Task<IActionResult> SignIn(String username, String password)
+        {
+            var user = await _userManager.FindByNameAsync(username);
 
-            var UserPrinciple = new ClaimsPrincipal(new[] { TheIdentity, TheGoogleIdentity });
+            if (user != null)
+            {
+                var signInResult = await _signInManager.PasswordSignInAsync(user, password, false, false);
 
-            HttpContext.SignInAsync(UserPrinciple);
+                if (signInResult.Succeeded)
+                {
+                    return RedirectToAction("Index");
+                }
+            }
 
             return RedirectToAction("Index");
         }
