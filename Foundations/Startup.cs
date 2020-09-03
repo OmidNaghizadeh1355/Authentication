@@ -35,12 +35,6 @@ namespace Authentication
                 config.LoginPath = "/Home/Login";
             });
 
-            //services.AddAuthentication("FoundationCookie")
-            //    .AddCookie("FoundationCookie", config =>
-            //    {
-            //        config.Cookie.Name = "FoundationSecurity.cookie";
-            //        config.LoginPath = "/Home/Authenticate";
-            //    });
             services.AddControllersWithViews();
         }
 

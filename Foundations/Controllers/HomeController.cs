@@ -1,10 +1,7 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Authentication.Controllers
@@ -62,6 +59,12 @@ namespace Authentication.Controllers
         public IActionResult Register()
         {
             return View();
+        }
+
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index");
         }
 
         private async Task<IActionResult> SignIn(String username, String password)
